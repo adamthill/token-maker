@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Maker</title>
+</head>
+
+<body>
+    <button type="button" onClick="techDemo()">Tech Demo</button>
+    <h2>Settings</h2>
+    <div id="settings">
+        <label for="backgroundColor">Background Color</label><input type="color" id="backgroundColor" value="#FFFFFF">
+        <label for="borderColor">Border Color</label><input type="color" id="borderColor">
+        <label for="textColor">Text Color</label><input type="color" id="textColor">
+        <label for="textSize">Text Size</label><select id="textSize">
+            <option value="auto" selected>auto</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20">20</option>
+            <option value="22">22</option>
+            <option value="24">24</option>
+            <option value="26">26</option>
+            <option value="28">28</option>
+            <option value="36">36</option>
+        </select>
+        <label for="tokenText">Token Text</label><input type="text" id="tokenText">
+        <label for="tokenSize">Token Size</label><select id="tokenSize">
+            <option value="32">Small (32)</option>
+            <option value="64" selected>Medium (64)</option>
+            <option value="128">Large (128)</option>
+        </select>
+    </div>
+    <button type="button" onclick="aaa()">Make Token</button>
+
+    <h2>Tokens</h2>
+    <div id="tokens"></div>
+</body>
+<script>
+
+    function aaa() {
+        const backgroundColor = document.getElementById('backgroundColor').value;
+        const borderColor = document.getElementById('borderColor').value;
+        const textColor = document.getElementById('textColor').value;
+        const tokenText = document.getElementById('tokenText').value;
+        const tokenSize = parseInt(document.getElementById('tokenSize').value, 10);
+        const borderWidth = tokenSize / 16;
+        const textSize = isNaN(parseInt(document.getElementById('textSize').value, 10)) ? utility.getBestFit({ borderWidth, tokenText, tokenSize }).textSize : parseInt(document.getElementById('textSize').value, 10);
+        const tokenConfig = { backgroundColor, borderColor, borderWidth, textColor, textSize, tokenText, tokenSize };
+        console.log(`${JSON.stringify(tokenConfig)}`);
+        const tokenCanvas = makeToken(tokenConfig);
+        const tokensElement = document.getElementById('tokens');
+        tokensElement.appendChild(tokenCanvas);
+    }
+
+    // https://www.w3schools.com/colors/colors_wheels.asp
+    const colors = {
+        yellow: '#FEFE33',
+        yellowGreen: '#B2D732',
+        green: '#66B032',
+        blueGreen: '#347C98',
+        blue: '#0247FE',
+        blueViolet: '#4424D6',
+        violet: '#8601AF',
+        redViolet: '#C21460',
+        red: '#FE2712',
+        redOrange: '#FC600A',
+        orange: '#FB9902',
+        yellowOrange: '#FCCC1A'
+    };
+    // https://graf1x.com/definition-of-complementary-analogous-triadic-and-split-complementary-color-schemes/
+    const splitComplementary = [
+        [colors.yellow, colors.blueViolet, colors.redViolet],
+        [colors.yellowGreen, colors.violet, colors.red],
+        [colors.green, colors.redViolet, colors.redOrange],
+        [colors.blueGreen, colors.red, colors.orange],
+        [colors.blue, colors.redOrange, colors.yellowOrange],
+        [colors.blueViolet, colors.orange, colors.yellow],
+        [colors.violet, colors.yellowOrange, colors.yellowGreen],
+        [colors.redViolet, colors.yellow, colors.green],
+        [colors.red, colors.yellowGreen, colors.blueGreen],
+        [colors.redOrange, colors.green, colors.blue],
+        [colors.orange, colors.blueGreen, colors.blueViolet],
+        [colors.yellowOrange, colors.blue, colors.violet]
+    ];
+
+    const tokenDefault = {
+        tokenSize: 64,
+        backgroundColor: 'lightsteelblue',
+        borderColor: 'crimson',
+        borderWidth: 4,
+        textColor: 'black',
+        textSize: 26,
+        tokenText: '',
+        fontName: 'Verdana, serif'
+    };
+
+    const utility = (function () {
+        const configs = [
+            { textSize: 36, textPadding: 8 },
+            { textSize: 28, textPadding: 8 },
+            { textSize: 26, textPadding: 8 },
+            { textSize: 24, textPadding: 8 },
+            { textSize: 22, textPadding: 8 },
+            { textSize: 20, textPadding: 8 },
+            { textSize: 18, textPadding: 8 },
+            { textSize: 16, textPadding: 8 },
+            { textSize: 14, textPadding: 8 },
+            { textSize: 12, textPadding: 8 }
+        ];
+        const getBestFit = ({ tokenText = tokenDefault.tokenText, tokenSize = tokenDefault.tokenSize, borderWidth = tokenDefault.borderWidth, fontName = tokenDefault.fontName }) => {
+            const canvas = document.createElement('canvas');
+            canvas.height = tokenSize;
+            canvas.width = tokenSize;
+            const context = canvas.getContext('2d');
+            for (let i = 0; i < configs.length; i += 1) {
+                const maxTextLength = tokenSize - (2 * borderWidth) - (2 * configs[i].textPadding);
+                context.font = `bold ${configs[i].textSize}px ${fontName}`;
+                const metrics = context.measureText(tokenText);
+                if (metrics.width < maxTextLength) {
+                    return { 'textSize': configs[i].textSize };
+                }
+            }
+            return { textSize: 10 };
+        };
+
+        return {
+            getBestFit
+        };
+    })();
+
+    const techDemo = () => {
+        const tokensElement = document.getElementById('tokens');
+        const configs = [
+            { textColor: 'red' },
+            { textSize: 36, tokenText: 'M' },
+            { textSize: 28, tokenText: 'MM' },
+            { textSize: 26, tokenText: 'MM' },
+            { textSize: 24, tokenText: 'MM' },
+            { textSize: 22, tokenText: 'MM' },
+            { textSize: 20, tokenText: 'MM' },
+            { textSize: 18, tokenText: 'MMM' },
+        ];
+        configs.forEach(config => {
+            const tokenCanvas = makeToken(config);
+            tokensElement.appendChild(tokenCanvas);
+        });
+
+        // showcase best fit algorithm
+        const config2 = [
+            { tokenText: 'W' },
+            { tokenText: 'WW' },
+            { tokenText: 'WWW' },
+            { tokenText: 'WWWW' },
+            { tokenText: 'WWWWW' }
+        ];
+        config2.forEach(config => {
+            const config2 = { ...config, ...utility.getBestFit(config) };
+            const tokenCanvas = makeToken(config2);
+            tokensElement.appendChild(tokenCanvas);
+        });
+
+        // showcase split complementary color schemes - many have bad contrast ratios for text :(
+        const config3 = [];
+        splitComplementary.forEach(triad => {
+            config3.push({ tokenText: 'Beer', textColor: triad[0], backgroundColor: triad[1], borderColor: triad[2] });
+            config3.push({ tokenText: 'Beer', textColor: triad[0], backgroundColor: triad[2], borderColor: triad[1] });
+        });
+        config3.forEach(config => {
+            const config3 = { ...config, ...utility.getBestFit(config) };
+            const tokenCanvas = makeToken(config3);
+            tokensElement.appendChild(tokenCanvas);
+        });
+    };
+
+    function makeToken({ tokenSize = tokenDefault.tokenSize, backgroundColor = tokenDefault.backgroundColor, borderColor = tokenDefault.borderColor, borderWidth = tokenDefault.borderWidth, textColor = tokenDefault.textColor, textSize = tokenDefault.textSize, tokenText = tokenDefault.tokenText } = {}) {
+        const tokenRadius = tokenSize / 2;
+        const centerHorizontal = tokenSize / 2;
+        const centerVertical = tokenSize / 2;
+        const canvas = document.createElement('canvas');
+        canvas.height = tokenSize;
+        canvas.width = tokenSize;
+        const context = canvas.getContext('2d');
+        // Paint background - edge-to-edge, fill-only
+        context.beginPath();
+        context.fillStyle = backgroundColor;
+        context.arc(centerHorizontal, centerVertical, tokenRadius, 0, 2 * Math.PI);
+        context.fill();
+        // Draw border - stroke (edge-to-edge less 1/2 stroke width)
+        context.beginPath();
+        context.lineWidth = borderWidth;
+        context.strokeStyle = borderColor;
+        context.arc(centerHorizontal, centerVertical, tokenRadius - 0.5 * borderWidth, 0, 2 * Math.PI);
+        context.stroke();
+        // text size seems to be the total height of a hypothetical character from ascender to descender
+        context.font = `bold ${textSize}px Verdana, serif`;
+        context.textBaseline = 'bottom';
+        context.textAlign = 'center';
+        context.fillStyle = textColor;
+        const fontBaseLine = (tokenSize - textSize) / 2 + textSize;
+        context.fillText(tokenText, centerHorizontal, fontBaseLine);
+        return canvas;
+    }
+</script>
+
+</html>
