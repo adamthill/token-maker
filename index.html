@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token Maker</title>
+    <style>
+        .token-container>div {
+            display: inline-grid;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,14 +39,13 @@
             <option value="128">Large (128)</option>
         </select>
     </div>
-    <button type="button" onclick="aaa()">Make Token</button>
+    <button type="button" onclick="bbb();">Make Token</button>
 
     <h2>Tokens</h2>
-    <div id="tokens"></div>
+    <div id="tokens" class="token-container"></div>
 </body>
 <script>
-
-    function aaa() {
+    function getConfig() {
         const backgroundColor = document.getElementById('backgroundColor').value;
         const borderColor = document.getElementById('borderColor').value;
         const textColor = document.getElementById('textColor').value;
@@ -49,11 +53,23 @@
         const tokenSize = parseInt(document.getElementById('tokenSize').value, 10);
         const borderWidth = tokenSize / 16;
         const textSize = isNaN(parseInt(document.getElementById('textSize').value, 10)) ? utility.getBestFit({ borderWidth, tokenText, tokenSize }).textSize : parseInt(document.getElementById('textSize').value, 10);
-        const tokenConfig = { backgroundColor, borderColor, borderWidth, textColor, textSize, tokenText, tokenSize };
-        console.log(`${JSON.stringify(tokenConfig)}`);
+        return { backgroundColor, borderColor, borderWidth, textColor, textSize, tokenText, tokenSize };
+    }
+
+    function aaa() {
+        // this is now unused in preference to bbb
+        const tokenConfig = getConfig();
         const tokenCanvas = makeToken(tokenConfig);
         const tokensElement = document.getElementById('tokens');
         tokensElement.appendChild(tokenCanvas);
+    }
+
+    function bbb() {
+        const tokenConfig = getConfig();
+        const tokenCanvas = makeToken(tokenConfig);
+        const tokensElement = document.getElementById('tokens');
+        const container = wrapCanvas(tokenCanvas, tokenConfig.tokenText);
+        tokensElement.appendChild(container);
     }
 
     // https://www.w3schools.com/colors/colors_wheels.asp
@@ -204,6 +220,19 @@
         context.fillText(tokenText, centerHorizontal, fontBaseLine);
         return canvas;
     }
+
+    function wrapCanvas(canvas, tokenText) {
+        const div = document.createElement('div');
+        const image = document.createElement('img');
+        image.src = canvas.toDataURL();
+        const link = document.createElement('a');
+        link.download = `${tokenText}.png`;
+        link.href = canvas.toDataURL();
+        link.appendChild(image);
+        div.appendChild(link);
+        return div;
+    }
+
 </script>
 
 </html>
